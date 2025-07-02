@@ -13,7 +13,7 @@ const bookingRoutes = require('./routes/booking');
 const crowdfundingRoutes = require('./routes/crowdfunding');
 const bridgeRoutes = require('./routes/bridge');
 const userRoutes = require('./routes/user');
-const transactionRoutes = require('./routes/transaction');
+// const transactionRoutes = require('./routes/transaction');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -87,7 +87,7 @@ app.use('/api/booking', authMiddleware, bookingRoutes);
 app.use('/api/crowdfunding', authMiddleware, crowdfundingRoutes);
 app.use('/api/bridge', authMiddleware, bridgeRoutes);
 app.use('/api/user', authMiddleware, userRoutes);
-app.use('/api/transaction', authMiddleware, transactionRoutes);
+// app.use('/api/transaction', authMiddleware, transactionRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
