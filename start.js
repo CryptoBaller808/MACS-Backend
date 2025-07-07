@@ -44,9 +44,39 @@ app.post('/api/v1/auth/login', (req, res) => {
 
   // Mock authentication logic - replace with real authentication
   const mockUsers = [
-    { id: '1', email: 'artist@macs.art', password: 'password123', name: 'Keoni Nakamura', role: 'artist' },
-    { id: '2', email: 'admin@macs.art', password: 'admin123', name: 'MACS Admin', role: 'admin' },
-    { id: '3', email: 'user@macs.art', password: 'user123', name: 'Art Lover', role: 'user' }
+    { 
+      id: '1', 
+      email: 'artist@macs.art', 
+      password: 'test123', 
+      name: 'Keoni Nakamura', 
+      role: 'artist',
+      avatar: '/images/avatars/keoni.jpg',
+      bio: 'Traditional Hawaiian ceramic artist specializing in ancient techniques',
+      location: 'Honolulu, Hawaii',
+      website: 'https://keoni-ceramics.com'
+    },
+    { 
+      id: '2', 
+      email: 'admin@macs.art', 
+      password: 'admin123', 
+      name: 'MACS Admin', 
+      role: 'admin',
+      avatar: '/images/avatars/admin.jpg',
+      bio: 'MACS Platform Administrator',
+      location: 'Global',
+      website: 'https://macs.art'
+    },
+    { 
+      id: '3', 
+      email: 'user@macs.art', 
+      password: 'user123', 
+      name: 'Art Lover', 
+      role: 'user',
+      avatar: '/images/avatars/user.jpg',
+      bio: 'Passionate supporter of traditional arts and crafts',
+      location: 'California, USA',
+      website: null
+    }
   ];
 
   const user = mockUsers.find(u => u.email === email && u.password === password);
@@ -54,13 +84,12 @@ app.post('/api/v1/auth/login', (req, res) => {
   if (!user) {
     return res.status(401).json({
       success: false,
-      message: 'Invalid email or password',
-      data: null
+      message: 'Invalid credentials'
     });
   }
 
   // Mock JWT token - replace with real JWT generation
-  const mockToken = `mock-jwt-token-${user.id}-${Date.now()}`;
+  const mockToken = `mock-jwt-12345`;
   
   res.status(200).json({
     success: true,
@@ -70,7 +99,11 @@ app.post('/api/v1/auth/login', (req, res) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role
+      role: user.role,
+      avatar: user.avatar,
+      bio: user.bio,
+      location: user.location,
+      website: user.website
     }
   });
 });
