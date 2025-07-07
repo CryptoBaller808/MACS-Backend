@@ -60,19 +60,17 @@ app.post('/api/v1/auth/login', (req, res) => {
   }
 
   // Mock JWT token - replace with real JWT generation
-  const mockToken = `mock_jwt_token_${user.id}_${Date.now()}`;
+  const mockToken = `mock-jwt-token-${user.id}-${Date.now()}`;
   
   res.status(200).json({
     success: true,
     message: 'Login successful',
-    data: {
-      token: mockToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role
-      }
+    token: mockToken,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role
     }
   });
 });
