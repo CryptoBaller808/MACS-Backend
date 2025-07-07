@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5176', 'https://vwdqfprm.manus.space'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5176', 'http://localhost:5178', 'http://localhost:5008', 'https://vwdqfprm.manus.space'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -246,6 +246,120 @@ app.post('/api/v1/campaigns', (req, res) => {
     message: 'Campaign created successfully',
     data: {
       campaign: newCampaign
+    }
+  });
+});
+
+// Campaign contribution endpoint
+app.post('/api/v1/campaigns/:id/contribute', (req, res) => {
+  const { id: campaignId } = req.params;
+  const { amount, note, paymentType, crypto } = req.body;
+  
+  // Validate required fields
+  if (!amount || amount <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Valid contribution amount is required',
+      data: null
+    });
+  }
+
+  if (paymentType === 'crypto') {
+    if (!crypto || !crypto.userWalletAddress || !crypto.network || !crypto.token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Crypto payment requires userWalletAddress, network, and token',
+        data: null
+      });
+    }
+  }
+
+  // Create new contribution - replace with Prisma create
+  const newContribution = {
+    id: String(Date.now()),
+    campaignId,
+    amount: parseFloat(amount),
+    note: note || "",
+    paymentType: paymentType || "fiat",
+    ...(paymentType === 'crypto' && {
+      cryptoData: {
+        userWalletAddress: crypto.userWalletAddress,
+        network: crypto.network,
+        token: crypto.token,
+        platformWallet: crypto.platformWallet,
+        transactionHash: null, // To be updated when transaction is confirmed
+        status: 'pending_confirmation'
+      }
+    }),
+    userId: "1", // Mock user ID - replace with authenticated user
+    createdAt: new Date().toISOString()
+  };
+
+  // Mock campaign data lookup and update
+  const mockCampaigns = [
+    {
+      id: "1",
+      title: "Traditional Ceramic Art Exhibition",
+      description: "Help me create a stunning exhibition showcasing traditional Hawaiian ceramic techniques passed down through generations.",
+      targetAmount: 5000,
+      currentAmount: 1350,
+      progressPercentage: 27,
+      deadline: "2025-08-15T23:59:59Z",
+      daysRemaining: 39,
+      status: "active",
+      artistId: "1",
+      imageUrl: "/images/ceramic-exhibition.jpg",
+      contributionsCount: 3,
+      createdAt: "2025-07-01T10:00:00Z",
+      updatedAt: "2025-07-07T10:17:59.583Z"
+    },
+    {
+      id: "2",
+      title: "Community Art Workshop Series",
+      description: "Fund a series of free community workshops to teach traditional pottery techniques to local youth.",
+      targetAmount: 3000,
+      currentAmount: 800,
+      progressPercentage: 26.7,
+      deadline: "2025-07-30T23:59:59Z",
+      daysRemaining: 23,
+      status: "active",
+      artistId: "1",
+      imageUrl: "/images/workshop-series.jpg",
+      contributionsCount: 2,
+      createdAt: "2025-06-15T14:20:00Z",
+      updatedAt: "2025-07-07T12:15:00Z"
+    }
+  ];
+
+  const campaign = mockCampaigns.find(c => c.id === campaignId);
+  
+  if (!campaign) {
+    return res.status(404).json({
+      success: false,
+      message: 'Campaign not found',
+      data: null
+    });
+  }
+
+  // Update campaign with new contribution
+  const newCurrentAmount = campaign.currentAmount + parseFloat(amount);
+  const newProgressPercentage = (newCurrentAmount / campaign.targetAmount) * 100;
+  const newContributionsCount = campaign.contributionsCount + 1;
+
+  const updatedCampaign = {
+    ...campaign,
+    currentAmount: newCurrentAmount,
+    progressPercentage: Math.round(newProgressPercentage * 10) / 10, // Round to 1 decimal
+    contributionsCount: newContributionsCount,
+    updatedAt: new Date().toISOString()
+  };
+
+  res.status(201).json({
+    success: true,
+    message: `${paymentType === 'crypto' ? 'Crypto contribution' : 'Contribution'} submitted successfully`,
+    data: {
+      contribution: newContribution,
+      campaign: updatedCampaign
     }
   });
 });
