@@ -18,11 +18,122 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
-    status: 'healthy',
+    success: true,
+    status: "MACS API is live",
     message: 'MACS Backend API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    data: {
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      environment: process.env.NODE_ENV || 'development'
+    }
   });
+});
+
+// Authentication Routes
+app.post('/api/v1/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  
+  // Validate required fields
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email and password are required',
+      data: null
+    });
+  }
+
+  // Mock authentication logic - replace with real authentication
+  const mockUsers = [
+    { id: '1', email: 'artist@macs.art', password: 'password123', name: 'Keoni Nakamura', role: 'artist' },
+    { id: '2', email: 'admin@macs.art', password: 'admin123', name: 'MACS Admin', role: 'admin' },
+    { id: '3', email: 'user@macs.art', password: 'user123', name: 'Art Lover', role: 'user' }
+  ];
+
+  const user = mockUsers.find(u => u.email === email && u.password === password);
+  
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid email or password',
+      data: null
+    });
+  }
+
+  // Mock JWT token - replace with real JWT generation
+  const mockToken = `mock_jwt_token_${user.id}_${Date.now()}`;
+  
+  res.status(200).json({
+    success: true,
+    message: 'Login successful',
+    data: {
+      token: mockToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+    }
+  });
+});
+
+// Users Routes
+app.get('/api/v1/users', (req, res) => {
+  // Mock users data - replace with Prisma queries
+  const users = [
+    {
+      id: '1',
+      email: 'artist@macs.art',
+      name: 'Keoni Nakamura',
+      role: 'artist',
+      avatar: '/images/avatars/keoni.jpg',
+      bio: 'Traditional Hawaiian ceramic artist specializing in ancient techniques',
+      location: 'Honolulu, Hawaii',
+      website: 'https://keoni-ceramics.com',
+      createdAt: '2025-01-15T10:00:00Z',
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '2',
+      email: 'admin@macs.art',
+      name: 'MACS Admin',
+      role: 'admin',
+      avatar: '/images/avatars/admin.jpg',
+      bio: 'MACS Platform Administrator',
+      location: 'Global',
+      website: 'https://macs.art',
+      createdAt: '2025-01-01T00:00:00Z',
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '3',
+      email: 'user@macs.art',
+      name: 'Art Lover',
+      role: 'user',
+      avatar: '/images/avatars/user.jpg',
+      bio: 'Passionate supporter of traditional arts and crafts',
+      location: 'California, USA',
+      website: null,
+      createdAt: '2025-02-01T12:00:00Z',
+      updatedAt: new Date().toISOString()
+    }
+  ];
+
+  res.status(200).json({
+    success: true,
+    message: 'Users retrieved successfully',
+    data: {
+      users,
+      total: users.length
+    }
+  });
+});
+
+// Projects Routes (alias to campaigns)
+app.get('/api/v1/projects', (req, res) => {
+  // Redirect to campaigns endpoint with consistent structure
+  req.url = '/api/v1/campaigns';
+  app._router.handle(req, res);
 });
 
 // API Routes
@@ -62,10 +173,13 @@ app.get('/api/v1/campaigns', (req, res) => {
     }
   ];
 
-  res.json({
+  res.status(200).json({
     success: true,
-    campaigns,
-    total: campaigns.length
+    message: 'Campaigns retrieved successfully',
+    data: {
+      campaigns,
+      total: campaigns.length
+    }
   });
 });
 
@@ -76,7 +190,8 @@ app.post('/api/v1/campaigns', (req, res) => {
   if (!title || !description || !targetAmount || !deadline || !artistId) {
     return res.status(400).json({
       success: false,
-      message: 'Missing required fields: title, description, targetAmount, deadline, artistId'
+      message: 'Missing required fields: title, description, targetAmount, deadline, artistId',
+      data: null
     });
   }
 
@@ -98,7 +213,9 @@ app.post('/api/v1/campaigns', (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Campaign created successfully',
-    campaign: newCampaign
+    data: {
+      campaign: newCampaign
+    }
   });
 });
 
@@ -109,7 +226,8 @@ app.post('/api/v1/contributions', (req, res) => {
   if (!campaignId || !amount || !contributorName || !contributorEmail) {
     return res.status(400).json({
       success: false,
-      message: 'Missing required fields: campaignId, amount, contributorName, contributorEmail'
+      message: 'Missing required fields: campaignId, amount, contributorName, contributorEmail',
+      data: null
     });
   }
 
@@ -146,8 +264,10 @@ app.post('/api/v1/contributions', (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Contribution submitted successfully',
-    contribution: newContribution,
-    campaign: updatedCampaign
+    data: {
+      contribution: newContribution,
+      campaign: updatedCampaign
+    }
   });
 });
 
@@ -157,12 +277,15 @@ app.get('/api/v1/bookings/availability/:artistId', (req, res) => {
   const { date } = req.query;
 
   // Mock availability data - replace with Prisma queries
-  res.json({
+  res.status(200).json({
     success: true,
-    available: true,
-    artistId,
-    date,
-    availableSlots: ['09:00', '10:00', '14:00', '15:00', '16:00']
+    message: 'Availability retrieved successfully',
+    data: {
+      available: true,
+      artistId,
+      date,
+      availableSlots: ['09:00', '10:00', '14:00', '15:00', '16:00']
+    }
   });
 });
 
@@ -172,7 +295,8 @@ app.post('/api/v1/bookings', (req, res) => {
   if (!artistId || !date || !time || !clientName || !clientEmail) {
     return res.status(400).json({
       success: false,
-      message: 'Missing required booking fields'
+      message: 'Missing required booking fields',
+      data: null
     });
   }
 
@@ -191,7 +315,9 @@ app.post('/api/v1/bookings', (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Booking request submitted successfully',
-    booking: newBooking
+    data: {
+      booking: newBooking
+    }
   });
 });
 
@@ -200,7 +326,10 @@ app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Endpoint not found',
-    path: req.originalUrl
+    data: {
+      path: req.originalUrl,
+      method: req.method
+    }
   });
 });
 
@@ -210,7 +339,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    data: {
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    }
   });
 });
 
